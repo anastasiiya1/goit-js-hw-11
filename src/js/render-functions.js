@@ -1,68 +1,67 @@
 import iziToast from 'izitoast';
-import 'izitoast/dist/css/iziToast.min.css';
+import SimpleLightbox from 'simplelightbox';
+import 'simplelightbox/dist/simple-lightbox.min.css';
 
-const searchForm = document.getElementById('search-form');
-const galleryList = document.querySelector('.gallery-list');
+export const galleryList = document.querySelector('.card-list');
+const loader = document.querySelector('.loader');
 
-searchForm.addEventListener('submit', function (event) {
-  event.preventDefault();
-
-  const searchInput = document.querySelector('.search-input');
-  const userSearchValue = searchInput.value.trim();
-
-  if (userSearchValue === '') {
-    iziToast.error({
-      title: 'Error',
-      message: 'Please enter a keyword before submitting the form.',
-    });
-    return false;
-  }
-
-  const apiKey = '42469793-94d748bc29f10cf193212e81f';
-  const url = `https://pixabay.com/api/?key=${apiKey}&q=${encodeURIComponent(
-    userSearchValue
-  )}&image_type=photo&orientation=horizontal&safesearch=true`;
-
-  fetch(url)
-    .then(response => {
-      if (!response.ok) {
-        throw new Error('Failed to fetch images. Please try again later.');
-      }
-      return response.json();
-    })
-    .then(responseData => {
-      handleApiResponse(responseData);
-    })
-    .catch(error => {
-      iziToast.error({
-        title: 'Error',
-        message: error.message,
-      });
-    });
-
-  return false;
+const instance = new SimpleLightbox('.card-item a', {
+  captionsData: 'alt',
+  captionDelay: 250,
 });
 
-const handleApiResponse = response => {
-  galleryList.innerHTML = '';
-
-  if (response.hits.length > 0) {
-    response.hits.forEach(image => {
-      const liElement = document.createElement('li');
-      liElement.classList.add('gallery-item');
-
-      const imgElement = document.createElement('img');
-      imgElement.src = image.webformatURL;
-      imgElement.alt = image.tags;
-
-      liElement.appendChild(imgElement);
-      galleryList.appendChild(liElement);
+export function renderCards({ hits }) {
+  if (!hits.length) {
+    iziToast.error({
+      title: 'Error',
+      message: 'Sorry, there are no images matching your search query. Please try again!',
+      position: 'topRight',
     });
-  } else {
-    iziToast.info({
-      title: 'Info',
-      message:
-        'Sorry, there are no images matching your search query. Please try again!',
-    });
+    return;
   }
-};
+  const markup = getMarkup(hits);
+  galleryList.insertAdjacentHTML('beforeend', markup);
+  instance.refresh();
+}
+
+function getMarkup(data) {
+  return data
+    .map(
+      ({
+        webformatURL,
+        largeImageURL,
+        tags,
+        likes,
+        views,
+        comments,
+        downloads,
+      }) => `<li class="card-item">
+  <a href=${largeImageURL}
+    ><img src=${webformatURL} alt="${tags}" height="200"/>
+    <ul class="card-info">
+      <li>
+        Likes
+        <p>${likes}</p>
+      </li>
+      <li>
+        Views
+        <p>${views}</p>
+      </li>
+      <li>
+        Comments
+        <p>${comments}</p>
+      </li>
+      <li>
+        Downloads
+        <p>${downloads}</p>
+      </li>
+    </ul></a
+  >
+</li>`
+    )
+    .join('');
+}
+
+export function toggleLoader() {
+  loader.classList.toggle('is-hidden');
+}
