@@ -16,3 +16,5 @@ export function fetchCards(searchQuery) {
     return response.json();
   });
 }
+
+console.log();

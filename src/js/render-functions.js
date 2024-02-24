@@ -65,3 +65,6 @@ function getMarkup(data) {
 export function toggleLoader() {
   loader.classList.toggle('is-hidden');
 }
+
+
+console.log();
