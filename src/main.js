@@ -37,6 +37,7 @@ function onSearchFormSubmit(event) {
         });
       });
   }
+  console.log();
 
 
 
